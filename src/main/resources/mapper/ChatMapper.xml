@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.lostfound.mapper.ChatMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.lostfound.pojo.Chat">
+        <id column="id" property="id"/>
+        <result column="from_user" property="fromUser"/>
+        <result column="to_user" property="toUser"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+        <result column="is_read" property="isRead"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, from_user, to_user, content, create_time, is_read
+    </sql>
+
+    <insert id="insert" parameterType="com.example.lostfound.pojo.Chat" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat (
+            from_user, to_user, content, create_time, is_read
+        ) VALUES (
+            #{fromUser}, #{toUser}, #{content}, #{createTime}, #{isRead}
+        )
+    </insert>
+
+    <select id="selectChatHistory" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chat
+        WHERE (from_user = #{userId1} AND to_user = #{userId2})
+           OR (from_user = #{userId2} AND to_user = #{userId1})
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectChatUserList" resultType="java.lang.Long">
+        SELECT other_user
+        FROM (
+            SELECT 
+                CASE
+                    WHEN from_user = #{userId} THEN to_user
+                    ELSE from_user
+                END AS other_user,
+                MAX(create_time) as latest_time
+            FROM chat
+            WHERE from_user = #{userId} OR to_user = #{userId}
+            GROUP BY other_user
+        ) as temp
+        ORDER BY latest_time DESC
+    </select>
+
+    <select id="countUnreadMessage" resultType="int">
+        SELECT COUNT(*)
+        FROM chat
+        WHERE to_user = #{userId}
+        AND is_read = 0
+    </select>
+    
+    <update id="updateMessageReadStatus" parameterType="map">
+        UPDATE chat
+        SET is_read = 1
+        WHERE to_user = #{toUserId}
+        AND from_user = #{fromUserId}
+        AND is_read = 0
+    </update>
+</mapper>

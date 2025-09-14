@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.lostfound.mapper.ItemMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.lostfound.pojo.Item">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="type" property="type"/>
+        <result column="location" property="location"/>
+        <result column="item_time" property="itemTime"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="status" property="status"/>
+        <result column="user_id" property="userId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, title, description, type, location, item_time, image_url, status, user_id, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM item
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.example.lostfound.pojo.Item" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO item (
+            title, description, type, location, item_time, image_url, status, user_id, create_time, update_time
+        ) VALUES (
+            #{title}, #{description}, #{type}, #{location}, #{itemTime}, #{imageUrl}, #{status}, #{userId}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.example.lostfound.pojo.Item">
+        UPDATE item
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="itemTime != null">item_time = #{itemTime},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE item
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM item
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM item
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPendingList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM item
+        WHERE status = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM item
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="countPendingByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM item
+        WHERE user_id = #{userId} AND status = 0
+    </select>
+
+    <select id="countResolvedByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM item
+        WHERE user_id = #{userId} AND status = 3
+    </select>
+
+    <select id="countPending" resultType="int">
+        SELECT COUNT(*)
+        FROM item
+        WHERE status = 0
+    </select>
+
+    <select id="countTodayNew" resultType="int">
+        SELECT COUNT(*)
+        FROM item
+        WHERE DATE(create_time) = CURDATE()
+    </select>
+</mapper>
