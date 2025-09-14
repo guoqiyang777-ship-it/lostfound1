@@ -1,7 +1,9 @@
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\mapper\AdminMapper.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\controller\AdminController.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\controller\ItemController.java
+E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\config\WebSocketConfig.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\UserService.java
+E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\UserContact.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\mapper\ChatMapper.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\vo\Result.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\LostFoundApplication.java
@@ -20,14 +22,17 @@ E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\impl\
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\User.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\impl\ItemServiceImpl.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\controller\ChatController.java
+E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\listener\ChatMessageListener.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\mapper\ItemMapper.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\Item.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\ItemService.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\config\OssConfig.java
+E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\mapper\UserContactMapper.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\AdminService.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\config\JacksonConfig.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\interceptor\JwtInterceptor.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\dto\ItemDTO.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\util\OssUtil.java
+E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\websocket\ChatWebSocketServer.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\pojo\Chat.java
 E:\JavaDemo\project1\lostfound\src\main\java\com\example\lostfound\service\impl\AdminServiceImpl.java

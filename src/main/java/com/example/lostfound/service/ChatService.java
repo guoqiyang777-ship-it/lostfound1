@@ -38,6 +38,14 @@ public interface ChatService {
     Result<List<Map<String, Object>>> getChatUserList(Long userId);
     
     /**
+     * 获取聊天用户列表（包含最后一条消息和未读消息数量）
+     *
+     * @param userId 用户ID
+     * @return 结果
+     */
+    Result<List<Map<String, Object>>> getChatUserListWithLastMessageAndUnreadCount(Long userId);
+    
+    /**
      * 标记与某用户的消息为已读
      *
      * @param userId 当前用户ID
@@ -45,4 +53,13 @@ public interface ChatService {
      * @return 结果
      */
     Result<String> markMessageAsRead(Long userId, Long fromUserId);
+    
+    /**
+     * 删除联系人（只删除联系人列表显示，不删除聊天记录）
+     *
+     * @param userId 当前用户ID
+     * @param contactUserId 要删除的联系人ID
+     * @return 结果
+     */
+    Result<String> deleteContact(Long userId, Long contactUserId);
 }

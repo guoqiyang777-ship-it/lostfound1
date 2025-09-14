@@ -47,11 +47,43 @@
         ) as temp
         ORDER BY latest_time DESC
     </select>
+    
+    <select id="selectChatUserListWithLastMessageAndUnreadCount" resultType="java.util.Map">
+        SELECT 
+            temp.other_user AS otherUserId,
+            last_msg.content AS lastMessage,
+            last_msg.create_time AS lastMessageTime,
+            (SELECT COUNT(*) FROM chat WHERE to_user = #{userId} AND from_user = temp.other_user AND is_read = 0) AS unreadCount
+        FROM (
+            SELECT 
+                CASE
+                    WHEN from_user = #{userId} THEN to_user
+                    ELSE from_user
+                END AS other_user,
+                MAX(create_time) as latest_time
+            FROM chat
+            WHERE from_user = #{userId} OR to_user = #{userId}
+            GROUP BY other_user
+        ) as temp
+        LEFT JOIN chat as last_msg ON 
+            ((last_msg.from_user = #{userId} AND last_msg.to_user = temp.other_user) OR 
+             (last_msg.from_user = temp.other_user AND last_msg.to_user = #{userId}))
+            AND last_msg.create_time = temp.latest_time
+        ORDER BY temp.latest_time DESC
+    </select>
 
     <select id="countUnreadMessage" resultType="int">
         SELECT COUNT(*)
         FROM chat
         WHERE to_user = #{userId}
+        AND is_read = 0
+    </select>
+    
+    <select id="countUnreadMessageFromUser" resultType="int">
+        SELECT COUNT(*)
+        FROM chat
+        WHERE to_user = #{toUserId}
+        AND from_user = #{fromUserId}
         AND is_read = 0
     </select>
     
@@ -62,4 +94,10 @@
         AND from_user = #{fromUserId}
         AND is_read = 0
     </update>
+    
+    <delete id="deleteAllChatsBetweenUsers" parameterType="map">
+        DELETE FROM chat
+        WHERE (from_user = #{userId1} AND to_user = #{userId2})
+           OR (from_user = #{userId2} AND to_user = #{userId1})
+    </delete>
 </mapper>

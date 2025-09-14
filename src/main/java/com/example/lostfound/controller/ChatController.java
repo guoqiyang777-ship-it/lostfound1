@@ -62,20 +62,39 @@ public class ChatController {
     }
 
     /**
-     * 获取聊天用户列表
+     * 获取聊天用户列表（包含最后一条消息和未读消息数量）
      *
      * @param request 请求
      * @return 结果
      */
-    @GetMapping("/user/list")
-    public Result<List<Map<String, Object>>> getChatUserList(HttpServletRequest request) {
+    @GetMapping("/user/list/detail")
+    public Result<List<Map<String, Object>>> getChatUserListWithLastMessageAndUnreadCount(HttpServletRequest request) {
         Object userIdObj = request.getAttribute("userId");
         if (userIdObj == null) {
             log.error("获取聊天用户列表失败: userId为null，可能是JWT拦截器未拦截该请求");
             return Result.error("未登录或登录已过期");
         }
         Long userId = Long.valueOf(userIdObj.toString());
-        return chatService.getChatUserList(userId);
+        return chatService.getChatUserListWithLastMessageAndUnreadCount(userId);
+    }
+    
+    /**
+     * 删除联系人
+     *
+     * @param contactUserId 联系人用户ID
+     * @param request       请求
+     * @return 结果
+     */
+    @DeleteMapping("/contact/{contactUserId}")
+    public Result<String> deleteContact(@PathVariable("contactUserId") Long contactUserId, HttpServletRequest request) {
+        Object userIdObj = request.getAttribute("userId");
+        if (userIdObj == null) {
+            log.error("删除联系人失败: userId为null，可能是JWT拦截器未拦截该请求");
+            return Result.error("未登录或登录已过期");
+        }
+        Long userId = Long.valueOf(userIdObj.toString());
+        log.info("删除联系人：userId={}, contactUserId={}", userId, contactUserId);
+        return chatService.deleteContact(userId, contactUserId);
     }
     
     /**
@@ -89,11 +108,11 @@ public class ChatController {
     public Result<String> markMessageAsRead(@PathVariable("fromUserId") Long fromUserId, HttpServletRequest request) {
         Object userIdObj = request.getAttribute("userId");
         if (userIdObj == null) {
-            log.error("标记消息已读失败: userId为null，可能是JWT拦截器未拦截该请求");
+            log.error("标记消息为已读失败: userId为null，可能是JWT拦截器未拦截该请求");
             return Result.error("未登录或登录已过期");
         }
         Long userId = Long.valueOf(userIdObj.toString());
-        log.info("标记消息已读：userId={}, fromUserId={}", userId, fromUserId);
+        log.info("标记消息为已读：userId={}, fromUserId={}", userId, fromUserId);
         return chatService.markMessageAsRead(userId, fromUserId);
     }
 }
