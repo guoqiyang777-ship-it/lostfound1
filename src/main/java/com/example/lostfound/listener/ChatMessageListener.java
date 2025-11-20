@@ -50,8 +50,8 @@ public class ChatMessageListener {
             if (sent) {
                 log.debug("已通过WebSocket发送未读消息数量更新通知给用户{}, 未读数量: {}", userId, unreadCount);
             } else {
-                // 如果发送失败，记录警告日志
-                log.warn("WebSocket发送未读消息数量更新通知给用户{}失败", userId);
+                // 用户未连接WebSocket，这是正常情况，不记录警告
+                log.debug("用户{}的WebSocket连接不存在，未读消息数量将在下次连接时同步", userId);
             }
         } catch (Exception e) {
             log.error("发送未读消息数量更新通知失败, userId={}", userId, e);

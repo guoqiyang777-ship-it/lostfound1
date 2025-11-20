@@ -1,8 +1,7 @@
 package com.example.lostfound.websocket;
 
-import com.example.lostfound.service.ChatService;
-import com.example.lostfound.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
@@ -32,17 +31,21 @@ public class ChatWebSocketServer {
     private Session session;
     
     // 由于@ServerEndpoint不支持自动注入，需要使用静态变量
-    private static ChatService chatService;
     private static ObjectMapper objectMapper;
     
+    // 注入ObjectMapper实例（非静态）
     @Autowired
-    public void setChatService(ChatService chatService) {
-        ChatWebSocketServer.chatService = chatService;
-    }
+    private ObjectMapper objectMapperInstance;
     
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        ChatWebSocketServer.objectMapper = objectMapper;
+    /**
+     * 初始化静态ObjectMapper
+     * 根据WebSocket对象注入规范：使用@PostConstruct方式初始化
+     */
+    @PostConstruct
+    public void init() {
+        ChatWebSocketServer.objectMapper = this.objectMapperInstance;
+        // ✅ 初始化日志使用DEBUG级别
+        log.debug("ChatWebSocketServer - ObjectMapper初始化成功");
     }
     
     /**
@@ -55,7 +58,8 @@ public class ChatWebSocketServer {
         
         // 将当前连接保存到Map中
         connections.put(userId, this);
-        log.info("WebSocket连接已建立，用户ID: {}，当前连接数: {}", userId, connections.size());
+        // ✅ 使用DEBUG级别，避免连接日志刷屏
+        log.debug("用户WebSocket连接已建立，用户ID: {}，当前连接数: {}", userId, connections.size());
     }
     
     /**
@@ -65,7 +69,8 @@ public class ChatWebSocketServer {
     public void onClose() {
         // 从Map中移除当前连接
         connections.remove(this.userId);
-        log.info("WebSocket连接已关闭，用户ID: {}，当前连接数: {}", this.userId, connections.size());
+        // ✅ 使用DEBUG级别，避免连接日志刷屏
+        log.debug("用户WebSocket连接已关闭，用户ID: {}，当前连接数: {}", this.userId, connections.size());
     }
     
     /**
@@ -73,17 +78,25 @@ public class ChatWebSocketServer {
      */
     @OnMessage
     public void onMessage(String message) {
-        log.info("收到来自用户 {} 的消息: {}", this.userId, message);
-        
         try {
+            if (objectMapper == null) {
+                log.error("ObjectMapper未初始化");
+                return;
+            }
+            
             // 解析消息
             Map<String, Object> messageMap = objectMapper.readValue(message, Map.class);
             String type = (String) messageMap.get("type");
             
             // 处理不同类型的消息
             if ("HEARTBEAT".equals(type)) {
-                // 心跳消息，回复心跳响应
+                // 心跳消息，使用DEBUG级别日志，避免刷屏
+                log.debug("收到来自用户 {} 的心跳消息", this.userId);
+                // 回复心跳响应
                 sendMessage(Map.of("type", "HEARTBEAT"));
+            } else {
+                // 非心跳消息才使用INFO级别记录
+                log.info("收到来自用户 {} 的消息: {}", this.userId, message);
             }
         } catch (Exception e) {
             log.error("处理WebSocket消息失败", e);
@@ -119,6 +132,10 @@ public class ChatWebSocketServer {
      */
     private boolean sendMessage(Object message) {
         try {
+            if (objectMapper == null) {
+                log.error("ObjectMapper未初始化，无法发送消息");
+                return false;
+            }
             String messageText = objectMapper.writeValueAsString(message);
             this.session.getBasicRemote().sendText(messageText);
             return true;
@@ -140,5 +157,17 @@ public class ChatWebSocketServer {
      */
     public static boolean isUserOnline(Integer userId) {
         return connections.containsKey(userId);
+    }
+    
+    /**
+     * 广播消息给所有连接的用户
+     * @param message 消息内容
+     */
+    public static void broadcastMessage(Object message) {
+        // ✅ 广播消息使用DEBUG级别，避免刷屏
+        log.debug("广播消息给所有用户");
+        for (ChatWebSocketServer server : connections.values()) {
+            server.sendMessage(message);
+        }
     }
 }

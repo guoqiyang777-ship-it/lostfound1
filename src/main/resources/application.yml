@@ -11,6 +11,17 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -22,6 +33,20 @@ pagehelper:
   helper-dialect: mysql
   reasonable: true
   support-methods-arguments: true
+
+# 日志配置
+logging:
+  level:
+    root: WARN                                       # 只输出警告和错误
+    com.example.lostfound: INFO                      # 业务日志保持INFO
+    com.example.lostfound.interceptor: WARN          # 拦截器只输出警告
+    com.example.lostfound.service.impl.ItemServiceImpl: INFO   # ItemService保持INFO
+    com.example.lostfound.service.impl.CacheServiceImpl: INFO  # ✅ CacheService改为INFO，查看缓存日志
+    com.example.lostfound.controller: INFO           # 控制器保持INFO方便追踪请求
+    com.example.lostfound.websocket: WARN            # ✅ WebSocket改为WARN，避免连接日志刷屏
+    com.example.lostfound.listener: WARN             # 监听器只输出警告
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
 
 # 自定义配置
 app:

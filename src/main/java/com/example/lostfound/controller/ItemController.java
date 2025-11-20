@@ -76,10 +76,12 @@ public class ItemController {
                                              @RequestParam(value = "status", required = false) Integer status,
                                              @RequestParam(value = "type", required = false) String type,
                                              @RequestParam(value = "title", required = false) String title,
-                                             @RequestParam(value = "location", required = false) String location) {
-        log.info("获取信息列表：pageNum={}, pageSize={}, status={}, type={}, title={}, location={}", 
-                pageNum, pageSize, status, type, title, location);
-        return itemService.getItemList(pageNum, pageSize, status, type, title, location);
+                                             @RequestParam(value = "location", required = false) String location,
+                                             HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        log.info("获取信息列表：pageNum={}, pageSize={}, status={}, type={}, title={}, location={}, role={}", 
+                pageNum, pageSize, status, type, title, location, role);
+        return itemService.getItemList(pageNum, pageSize, status, type, title, location, role);
     }
 
     /**
@@ -89,8 +91,9 @@ public class ItemController {
      * @return 结果
      */
     @GetMapping("/detail/{itemId}")
-    public Result<ItemVO> getItemDetail(@PathVariable("itemId") Long itemId) {
-        return itemService.getItemDetail(itemId);
+    public Result<ItemVO> getItemDetail(HttpServletRequest request, @PathVariable("itemId") Long itemId) {
+        String role = (String) request.getAttribute("role");
+        return itemService.getItemDetail(itemId, role);
     }
 
     /**

@@ -42,7 +42,7 @@ public interface ItemService {
      * @param location 地点
      * @return 信息列表
      */
-    Result<PageResult<ItemVO>> getItemList(int pageNum, int pageSize, Integer status, String type, String title, String location);
+    Result<PageResult<ItemVO>> getItemList(int pageNum, int pageSize, Integer status, String type, String title, String location, String role);
 
     /**
      * 获取信息详情
@@ -50,7 +50,7 @@ public interface ItemService {
      * @param itemId 信息ID
      * @return 结果
      */
-    Result<ItemVO> getItemDetail(Long itemId);
+    Result<ItemVO> getItemDetail(Long itemId, String role);
 
     /**
      * 获取用户发布的信息列表

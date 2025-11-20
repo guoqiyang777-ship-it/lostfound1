@@ -78,4 +78,12 @@ public interface UserService {
      * @return 结果
      */
     Result<String> updateStatus(Long userId, Integer status);
+
+    /**
+     * 用户登出
+     *
+     * @param token token
+     * @return 结果
+     */
+    Result<String> logout(String token);
 }

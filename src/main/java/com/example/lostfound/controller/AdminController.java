@@ -75,4 +75,14 @@ public class AdminController {
         log.info("更新用户状态：userId={}, status={}", userId, status);
         return userService.updateStatus(userId, status);
     }
+
+    @PostMapping("/logout")
+    public Result<String> logout(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        }
+        return adminService.logout(token);
+    }
 }

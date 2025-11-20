@@ -23,4 +23,12 @@ public interface AdminService {
      * @return 结果
      */
     Result<Admin> getAdminInfo(Long adminId);
+
+    /**
+     * 管理员登出
+     *
+     * @param token token
+     * @return 结果
+     */
+    Result<String> logout(String token);
 }

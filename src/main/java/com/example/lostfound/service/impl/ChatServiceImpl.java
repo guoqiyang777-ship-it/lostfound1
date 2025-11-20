@@ -85,21 +85,46 @@ public class ChatServiceImpl implements ChatService {
         
         // 通过WebSocket发送实时通知
         try {
-            // 准备WebSocket消息
-            Map<String, Object> message = new HashMap<>();
-            message.put("type", "CHAT");
-            message.put("chatId", chat.getId());
-            message.put("fromUser", fromUserId);
-            message.put("fromUsername", fromUser.getUsername());
-            message.put("content", chatDTO.getContent());
-            message.put("createTime", chat.getCreateTime().toString());
+            // 计算接收方的最新未读消息数量
+            int receiverUnreadCount = chatMessageListener.getUnreadMessageCount(chatDTO.getToUser());
+            // 计算发送方的未读消息数量（虽然发送方通常为0，但为了一致性也计算）
+            int senderUnreadCount = chatMessageListener.getUnreadMessageCount(fromUserId);
+            
+            // 准备WebSocket消息给接收方（包含完整信息和未读数量）
+            Map<String, Object> messageToReceiver = new HashMap<>();
+            messageToReceiver.put("type", "CHAT");
+            messageToReceiver.put("chatId", chat.getId());
+            messageToReceiver.put("fromUser", fromUserId);
+            messageToReceiver.put("fromUsername", fromUser.getUsername());
+            messageToReceiver.put("fromUserName", fromUser.getRealName() != null ? fromUser.getRealName() : fromUser.getUsername());
+            messageToReceiver.put("toUser", chatDTO.getToUser());
+            messageToReceiver.put("content", chatDTO.getContent());
+            messageToReceiver.put("createTime", chat.getCreateTime().toString());
+            messageToReceiver.put("unreadCount", receiverUnreadCount); // 直接包含未读数量
             
             // 发送WebSocket消息给接收方
-            ChatWebSocketServer.sendMessageToUser(chatDTO.getToUser().intValue(), message);
-            log.info("已通过WebSocket发送消息通知给用户{}", chatDTO.getToUser());
+            boolean sentToReceiver = ChatWebSocketServer.sendMessageToUser(chatDTO.getToUser().intValue(), messageToReceiver);
+            if (sentToReceiver) {
+                log.info("已通过WebSocket发送消息通知给用户{}，未读数量: {}", chatDTO.getToUser(), receiverUnreadCount);
+            }
             
-            // 更新接收方的未读消息数量
-            chatMessageListener.sendUnreadCountUpdate(chatDTO.getToUser());
+            // 准备WebSocket消息给发送方（用于更新发送方的聊天列表）
+            Map<String, Object> messageToSender = new HashMap<>();
+            messageToSender.put("type", "CHAT");
+            messageToSender.put("chatId", chat.getId());
+            messageToSender.put("fromUser", fromUserId);
+            messageToSender.put("fromUsername", fromUser.getUsername());
+            messageToSender.put("fromUserName", fromUser.getRealName() != null ? fromUser.getRealName() : fromUser.getUsername());
+            messageToSender.put("toUser", chatDTO.getToUser());
+            messageToSender.put("content", chatDTO.getContent());
+            messageToSender.put("createTime", chat.getCreateTime().toString());
+            messageToSender.put("unreadCount", senderUnreadCount); // 发送方的未读数量
+            
+            // 发送给发送方本人
+            boolean sentToSender = ChatWebSocketServer.sendMessageToUser(fromUserId.intValue(), messageToSender);
+            if (sentToSender) {
+                log.info("已通过WebSocket发送消息通知给发送方{}，未读数量: {}", fromUserId, senderUnreadCount);
+            }
         } catch (Exception e) {
             log.error("发送WebSocket消息通知失败", e);
             // 消息已保存到数据库，WebSocket通知失败不影响主流程
@@ -258,18 +283,19 @@ public class ChatServiceImpl implements ChatService {
             
             // 通过WebSocket发送已读状态更新通知
             try {
-                // 准备WebSocket消息
+                // 计算当前用户的最新未读消息数量
+                int unreadCount = chatMessageListener.getUnreadMessageCount(userId);
+                
+                // 准备WebSocket消息（包含完整信息和未读数量）
                 Map<String, Object> message = new HashMap<>();
                 message.put("type", "READ_STATUS");
                 message.put("fromUser", fromUserId);
                 message.put("toUser", userId);
+                message.put("unreadCount", unreadCount); // 直接包含未读数量
                 
                 // 发送WebSocket消息给当前用户，更新其界面
-            ChatWebSocketServer.sendMessageToUser(userId.intValue(), message);
-            log.info("已通过WebSocket发送已读状态更新通知给用户{}", userId);
-            
-            // 更新当前用户的未读消息数量
-            chatMessageListener.sendUnreadCountUpdate(userId);
+                ChatWebSocketServer.sendMessageToUser(userId.intValue(), message);
+                log.info("已通过WebSocket发送已读状态更新通知给用户{}，未读数量: {}", userId, unreadCount);
             } catch (Exception e) {
                 log.error("发送WebSocket已读状态更新通知失败", e);
                 // WebSocket通知失败不影响主流程

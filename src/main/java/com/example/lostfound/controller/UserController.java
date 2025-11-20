@@ -101,4 +101,14 @@ public class UserController {
         Long userId = Long.valueOf(request.getAttribute("userId").toString());
         return userService.updatePassword(userId, oldPassword, newPassword);
     }
+
+    @PostMapping("/logout")
+    public Result<String> logout(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        }
+        return userService.logout(token);
+    }
 }

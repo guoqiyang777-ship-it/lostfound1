@@ -8,9 +8,11 @@ import com.example.lostfound.pojo.vo.Result;
 import com.example.lostfound.service.UserService;
 import com.example.lostfound.util.JwtUtil;
 import com.example.lostfound.util.OssUtil;
+import com.example.lostfound.util.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +32,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Value("${app.jwt.expiration}")
+    private Long jwtExpiration;
 
     @Autowired
     private OssUtil ossUtil;
@@ -80,7 +88,20 @@ public class UserServiceImpl implements UserService {
         }
 
         // 生成token
-        String token = jwtUtil.generateToken(user.getId().toString(), "user");
+        String token = jwtUtil.generateToken(String.valueOf(user.getId()), "user");
+
+        // 存储token到Redis（24小时）
+        String tokenKey = "token:" + token;
+        // ✅ jwtExpiration是毫秒，需要转换为秒
+        long expirationSeconds = jwtExpiration / 1000;
+        redisUtil.set(tokenKey, user.getId() + ":" + "user", expirationSeconds);
+        
+        // ✅ 建立userId到token的反向索引，方便禁用时清除
+        String userTokenSetKey = "user:tokens:" + user.getId();
+        redisUtil.addToSet(userTokenSetKey, token);
+        redisUtil.expire(userTokenSetKey, expirationSeconds);
+        
+        log.info("用户登录，token已存入Redis: key={}, value={}, expiration={}秒", tokenKey, user.getId() + ":" + "user", expirationSeconds);
 
         return Result.success(token);
     }
@@ -181,7 +202,59 @@ public class UserServiceImpl implements UserService {
 
         // 更新状态
         userMapper.updateStatus(userId, status);
+        
+        // ✅ 如果是禁用用户（status=1），删除该用户的所有token
+        if (status == 1) {
+            clearUserTokens(userId);
+            log.info("用户被禁用，已清除所有token: userId={}", userId);
+        }
 
         return Result.success("操作成功");
+    }
+
+    @Override
+    public Result<String> logout(String token) {
+        // 从Redis中删除token
+        String tokenKey = "token:" + token;
+        redisUtil.delete(tokenKey);
+        
+        // ✅ 从用户token集合中移除
+        try {
+            String userIdStr = jwtUtil.getUserIdFromToken(token);
+            if (userIdStr != null) {
+                String userTokenSetKey = "user:tokens:" + userIdStr;
+                redisUtil.removeFromSet(userTokenSetKey, token);
+            }
+        } catch (Exception e) {
+            log.warn("从userTokenSet中移除token失败", e);
+        }
+        
+        log.info("用户登出，token已从Redis中删除: key={}", tokenKey);
+        return Result.success("登出成功");
+    }
+    
+    /**
+     * 清除用户的所有token（用于禁用用户时）
+     * @param userId 用户ID
+     */
+    private void clearUserTokens(Long userId) {
+        String userTokenSetKey = "user:tokens:" + userId;
+        
+        // 获取该用户的所有token
+        java.util.Set<Object> tokens = redisUtil.getSetMembers(userTokenSetKey);
+        
+        if (tokens != null && !tokens.isEmpty()) {
+            // 删除每个token
+            for (Object tokenObj : tokens) {
+                String token = tokenObj.toString();
+                String tokenKey = "token:" + token;
+                redisUtil.delete(tokenKey);
+            }
+            
+            // 删除token集合本身
+            redisUtil.delete(userTokenSetKey);
+            
+            log.info("已清除用户的{}个token: userId={}", tokens.size(), userId);
+        }
     }
 }
