@@ -3,6 +3,7 @@ package com.example.lostfound.service;
 import com.example.lostfound.pojo.User;
 import com.example.lostfound.pojo.dto.UserLoginDTO;
 import com.example.lostfound.pojo.dto.UserRegisterDTO;
+import com.example.lostfound.pojo.vo.PageResult;
 import com.example.lostfound.pojo.vo.Result;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -77,6 +78,18 @@ public interface UserService {
      * @return 结果
      */
     Result<List<User>> getUserList();
+
+    /**
+     * 分页获取用户列表
+     *
+     * @param pageNum  页码
+     * @param pageSize 每页大小
+     * @param username 用户名（可选）
+     * @param realName 真实姓名（可选）
+     * @param studentNo 学号（可选）
+     * @return 分页结果
+     */
+    Result<PageResult<User>> getUserListWithPaging(int pageNum, int pageSize, String username, String realName, String studentNo);
 
     /**
      * 更新用户状态

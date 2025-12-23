@@ -4,11 +4,14 @@ import com.example.lostfound.mapper.UserMapper;
 import com.example.lostfound.pojo.User;
 import com.example.lostfound.pojo.dto.UserLoginDTO;
 import com.example.lostfound.pojo.dto.UserRegisterDTO;
+import com.example.lostfound.pojo.vo.PageResult;
 import com.example.lostfound.pojo.vo.Result;
 import com.example.lostfound.service.UserService;
 import com.example.lostfound.util.JwtUtil;
 import com.example.lostfound.util.OssUtil;
 import com.example.lostfound.util.RedisUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -247,6 +250,27 @@ public class UserServiceImpl implements UserService {
         userList.forEach(user -> user.setPassword(null));
 
         return Result.success(userList);
+    }
+
+    @Override
+    public Result<PageResult<User>> getUserListWithPaging(int pageNum, int pageSize, String username, String realName, String studentNo) {
+        // 使用PageHelper进行分页查询
+        PageHelper.startPage(pageNum, pageSize);
+        List<User> userList = userMapper.selectListByCondition(username, realName, studentNo);
+
+        // 清除敏感信息
+        userList.forEach(user -> user.setPassword(null));
+
+        // 获取分页信息
+        PageInfo<User> pageInfo = new PageInfo<>(userList);
+
+        PageResult<User> pageResult = new PageResult<>();
+        pageResult.setTotal(pageInfo.getTotal());
+        pageResult.setList(pageInfo.getList());
+        pageResult.setPageNum(pageInfo.getPageNum());
+        pageResult.setPageSize(pageInfo.getPageSize());
+
+        return Result.success(pageResult);
     }
 
     @Override

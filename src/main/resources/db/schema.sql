@@ -70,3 +70,16 @@ CREATE TABLE IF NOT EXISTS `chat` (
 INSERT INTO `admin` (`username`, `password`, `real_name`, `phone`, `status`, `create_time`)
 VALUES ('admin', '21232f297a57a5a743894a0e4a801fc3', '管理员', '13800138000', 0, NOW());
 -- 密码为：admin
+
+-- 添加删除的字段（修复版本）
+ALTER TABLE `admin` ADD COLUMN `phone` VARCHAR(20) NULL COMMENT '电话' AFTER `real_name`;
+ALTER TABLE `admin` ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0正常，1禁用）' AFTER `phone`;
+ALTER TABLE `admin` ADD COLUMN `create_time` DATETIME NULL COMMENT '创建时间' AFTER `status`;
+
+-- 更新现有记录设置默认值
+UPDATE `admin` SET `phone` = '' WHERE `phone` IS NULL;
+UPDATE `admin` SET `create_time` = NOW() WHERE `create_time` IS NULL;
+
+-- 修改列为 NOT NULL 约束
+ALTER TABLE `admin` MODIFY COLUMN `phone` VARCHAR(20) NOT NULL COMMENT '电话';
+ALTER TABLE `admin` MODIFY COLUMN `create_time` DATETIME NOT NULL COMMENT '创建时间';

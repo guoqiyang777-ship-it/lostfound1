@@ -3,6 +3,7 @@ package com.example.lostfound.controller;
 import com.example.lostfound.pojo.Admin;
 import com.example.lostfound.pojo.User;
 import com.example.lostfound.pojo.dto.AdminLoginDTO;
+import com.example.lostfound.pojo.vo.PageResult;
 import com.example.lostfound.pojo.vo.Result;
 import com.example.lostfound.service.AdminService;
 import com.example.lostfound.service.UserService;
@@ -66,6 +67,26 @@ public class AdminController {
     @GetMapping("/user/list")
     public Result<List<User>> getUserList() {
         return userService.getUserList();
+    }
+
+    /**
+     * 分页获取用户列表
+     *
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param username 用户名（可选）
+     * @param realName 真实姓名（可选）
+     * @param studentNo 学号（可选）
+     * @return 分页结果
+     */
+    @GetMapping("/user/list/paging")
+    public Result<PageResult<User>> getUserListPaging(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String realName,
+            @RequestParam(required = false) String studentNo) {
+        return userService.getUserListWithPaging(pageNum, pageSize, username, realName, studentNo);
     }
 
     /**

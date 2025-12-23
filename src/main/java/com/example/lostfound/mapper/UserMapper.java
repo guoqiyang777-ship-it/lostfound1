@@ -58,4 +58,16 @@ public interface UserMapper {
      * @return 用户列表
      */
     List<User> selectList();
+
+    /**
+     * 根据条件查询用户列表（支持分页和搜索）
+     *
+     * @param username 用户名（可选）
+     * @param realName 真实姓名（可选）
+     * @param studentNo 学号（可选）
+     * @return 用户列表
+     */
+    List<User> selectListByCondition(@Param("username") String username,
+                                   @Param("realName") String realName,
+                                   @Param("studentNo") String studentNo);
 }

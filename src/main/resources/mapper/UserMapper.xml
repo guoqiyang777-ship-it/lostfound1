@@ -65,6 +65,24 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM user
-        ORDER BY create_time DESC
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectListByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                AND real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="studentNo != null and studentNo != ''">
+                AND student_no LIKE CONCAT('%', #{studentNo}, '%')
+            </if>
+        </where>
+        ORDER BY id ASC
     </select>
 </mapper>
